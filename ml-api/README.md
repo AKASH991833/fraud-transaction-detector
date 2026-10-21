@@ -1,5 +1,8 @@
 # Python/ML version (scikit-learn + FastAPI)
 
+> Part of **[fraud-transaction-detector](https://github.com/AKASH991833/fraud-transaction-detector)** — live browser demo: https://akash991833.github.io/fraud-transaction-detector/ · screenshots in the repo-root `screenshots/` folder.
+
+
 The GitHub Pages demo runs a compact pre-trained model in your browser. This
 folder is the full training + serving pipeline behind it.
 
