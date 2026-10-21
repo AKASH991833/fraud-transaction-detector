@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fraud Transaction Detector — On-Device ML Risk Scoring</title>
+<meta name="description" content="Score card transactions for fraud risk with a transparent ML model that runs entirely in your browser. Factor contributions, batch CSV screening. Free and private.">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="accent.css"><link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+</head>
+<body>
+<header class="site-head"><div class="wrap">
+<a class="brand" href="#top"><span class="mark"><svg viewBox="0 0 512 512" fill="none"><rect x="116" y="150" width="280" height="190" rx="24" stroke="#fff" stroke-width="28"/><path d="M116 210h280" stroke="#fff" stroke-width="24"/><path d="M160 290h60" stroke="#fff" stroke-width="24" stroke-linecap="round"/><path d="M330 120l40 40 62-66" stroke="#fff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Fraud Transaction Detector<small>On-device ML · TensorFlow.js</small></span></a>
+<nav class="head-nav">
+<a href="#score">Score</a><a href="#batch">Batch</a><a href="#model">Model</a>
+<button class="icon-btn keep hidden" id="pwa-install" onclick="pkInstall()" title="Install app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg></button>
+<button class="icon-btn" onclick="pkToggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+<svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+<svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button></nav>
+</div></header>
+<main id="top">
+<section class="hero"><div class="wrap">
+<span class="eyebrow">TensorFlow.js · Runs entirely in your browser</span>
+<h1>Which transaction would you stop first?</h1>
+<p class="sub">A logistic-regression model scores card transactions for fraud risk from 12 signals — amount, hour, payee age, distance, velocity and more — and shows exactly which factors raised the flag. Trained on 1,200 clearly-labeled synthetic transactions, right on your device.</p>
+<div class="cta-row"><a class="btn btn-pri" href="#score">Score a transaction</a><a class="btn btn-sec" href="#model">See the model</a></div>
+<p class="hint" id="train-prog" style="margin-top:14px"><span class="spin"></span> Loading the model…</p>
+</div></section>
+
+<section class="section" id="score"><div class="wrap">
+<div class="sec-head"><h2>Risk scorer</h2><p>Describe the transaction — get a risk score with factor-by-factor reasoning.</p></div>
+<div class="grid grid-2">
+<div class="card">
+<div class="form-grid">
+<div><label class="f-label" for="f-amount">Amount (₹)</label><input id="f-amount" type="number" value="1200" min="0"></div>
+<div><label class="f-label" for="f-hour">Hour (0-23)</label><input id="f-hour" type="number" value="14" min="0" max="23"></div>
+<div><label class="f-label" for="f-category">Category</label><select id="f-category"><option>groceries</option><option>fuel</option><option>dining</option><option selected>shopping</option><option>travel</option><option>electronics</option><option>transfer</option><option>atm</option></select></div>
+<div><label class="f-label" for="f-payee">Payee age (days)</label><input id="f-payee" type="number" value="400" min="0"></div>
+<div><label class="f-label" for="f-distance">Distance from home (km)</label><input id="f-distance" type="number" value="5" min="0"></div>
+<div><label class="f-label" for="f-channel">Channel</label><select id="f-channel"><option value="instore">In-store</option><option value="online" selected>Online</option></select></div>
+<div><label class="f-label" for="f-velocity">Transactions in last hour</label><input id="f-velocity" type="number" value="1" min="1" max="20"></div>
+<div class="check-row"><label class="f-label" for="f-intl">International</label><input id="f-intl" type="checkbox" style="width:20px;height:20px"></div>
+</div>
+<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+<button class="btn btn-pri" id="analyze">Score transaction</button>
+<button class="btn btn-sec" id="sample">Try a sample</button>
+</div>
+</div>
+<div class="card result-anim hidden" id="result">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<span id="verdict"></span><span class="mono" id="prob-num" style="font-size:20px;font-weight:600"></span>
+</div>
+<div class="meter" style="height:12px"><i id="prob-meter"></i></div>
+<p class="hint" style="margin:8px 0 14px" id="prob-note"></p>
+<h3 style="margin:14px 0 8px;font-size:15px">Top factors</h3>
+<div id="factors"></div>
+</div>
+</div>
+</div></section>
+
+<section class="section" id="batch"><div class="wrap">
+<div class="sec-head"><h2>Batch screening</h2><p>Paste CSV rows and screen a whole day's transactions. Export the results.</p></div>
+<div class="card">
+<label class="f-label" for="batch-in">CSV: amount,hour,category,payeeAgeDays,distanceKm,channel,intl,txLastHour</label>
+<textarea id="batch-in" placeholder="4200,2,electronics,1,3200,online,1,5&#10;340,13,groceries,900,3,instore,0,1" style="min-height:110px"></textarea>
+<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+<button class="btn btn-pri" id="batch-btn">Screen all</button>
+<button class="btn btn-sec hidden" id="batch-dl">Download CSV</button>
+</div>
+<div id="batch-out" class="hidden" style="margin-top:20px">
+<div id="batch-sum" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"></div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Amount</th><th>Category</th><th>Verdict</th><th>Score</th></tr></thead><tbody id="batch-tbl"></tbody></table></div>
+</div>
+</div>
+</div></section>
+
+<section class="section" id="model"><div class="wrap">
+<div class="sec-head"><h2>The model</h2><p>Honest cross-validated metrics on the synthetic training data.</p></div>
+<div class="grid grid-3">
+<div class="stat"><div class="num" id="m-acc">—</div><div class="lbl">CV accuracy</div></div>
+<div class="stat"><div class="num" id="m-prec">—</div><div class="lbl">Precision</div></div>
+<div class="stat"><div class="num" id="m-rec">—</div><div class="lbl">Recall (fraud caught)</div></div>
+</div>
+<div class="grid grid-2" style="margin-top:18px">
+<div class="card"><h3>Confusion matrix</h3><p class="hint" style="margin-bottom:14px">5-fold cross-validation over 1,200 synthetic transactions (out-of-fold predictions).</p>
+<div class="tbl-wrap"><table class="tbl cm" id="m-conf"></table></div></div>
+<div class="card"><h3>How it scores</h3>
+<div class="arch-step">12 engineered signals <span class="mono">amount, hour, payee age, distance, velocity…</span></div>
+<div class="arch-step">Normalize to 0-1 <span class="mono">so weights are comparable</span></div>
+<div class="arch-step">Logistic regression + L2 <span class="mono">→ fraud probability</span></div>
+<div class="arch-step">Factor contributions <span class="mono">weight × signal value</span></div>
+<p class="hint" style="margin-top:12px">Every score decomposes into per-factor contributions — the same linearity that makes this model auditable is what real fraud teams use for first-pass triage.</p>
+<button class="btn btn-sec" id="retrain" style="margin-top:14px">Retrain in browser</button>
+<p class="hint" style="margin-top:8px">Ships with pre-trained weights for instant, deterministic results.</p></div>
+</div>
+<div class="note" style="margin-top:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+<span><strong>Honest limits:</strong> trained on 1,200 <em>synthetic</em> transactions with deliberately injected fraud patterns (big amounts, odd hours, new payees, far distances, bursts). The metrics describe performance on that synthetic data only — real fraud is subtler, adaptive and nothing like a clean rule set. This is a teaching tool, not a bank-grade system. Never use it to accuse or block anyone.</span></div>
+</div></section>
+</main>
+<footer class="site-foot"><div class="wrap cols">
+<div><div class="fbrand">Fraud Transaction Detector</div>
+<p style="margin-top:8px;max-width:52ch">A transparent fraud-risk teaching model that runs entirely on your device. Free, private, no sign-up.</p>
+<p style="margin-top:10px">Runs 100% free. <span class="mono">No sign-up. No card.</span></p></div>
+<div style="text-align:right"><p>Built by <a href="https://github.com/AKASH991833" target="_blank" rel="noopener">Akash Vishwakarma</a></p>
+<p style="margin-top:6px"><a href="https://github.com/AKASH991833/fraud-transaction-detector" target="_blank" rel="noopener">Source on GitHub</a></p></div>
+</div></footer>
+<script src="kit.js"></script>
+<script src="fraud-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

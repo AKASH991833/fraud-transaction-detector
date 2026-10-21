@@ -1,0 +1,13 @@
+/* fraud-transaction-detector specifics */
+.cm td{text-align:center;font:600 15px var(--font-body)}
+.cm .cm-ok{background:var(--ok-soft);color:var(--ok)}
+.cm .cm-bad{background:var(--bad-soft);color:var(--bad)}
+.arch-step{padding:10px 14px;border-left:3px solid var(--accent);background:var(--bg-soft);border-radius:0 10px 10px 0;margin-bottom:10px;font-size:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid input,.form-grid select{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;background:var(--bg);color:var(--ink)}
+.form-grid input:focus,.form-grid select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
+.check-row{display:flex;align-items:center;gap:10px;justify-content:flex-start}
+.factor{display:flex;justify-content:space-between;padding:8px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;font-size:13.5px}
+.bad-t{color:var(--bad);font-weight:600}
+.ok-t{color:var(--ok);font-weight:600}
+@media(max-width:640px){.form-grid{grid-template-columns:1fr}}
