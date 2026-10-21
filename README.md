@@ -50,3 +50,9 @@ python3 -m http.server 8000
 ```
 
 Built by [Akash Vishwakarma](https://github.com/AKASH991833). Free to use — no sign-up, no card.
+
+
+## Stacks
+
+- **Live demo (this repo root):** HTML/CSS/JS — compact pre-trained model scoring in your browser.
+- **Python pipeline (`ml-api/`):** scikit-learn training (documented synthetic generator, class-imbalance handling, PR/ROC metrics) plus a FastAPI scoring service. See `ml-api/README.md`.
